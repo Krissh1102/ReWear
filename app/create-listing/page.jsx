@@ -1,82 +1,126 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Plus, X } from 'lucide-react';
-import { db } from '@/lib/firebase';
+import { Plus, X, Upload, Image as ImageIcon } from 'lucide-react';
+import { db, storage } from '@/lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { useUser } from '@clerk/nextjs';
+import Image from 'next/image';
 
 const CreateItemPage = () => {
+  const { user, isLoaded } = useUser();
+
   const [formData, setFormData] = useState({
-    email: '',
-    name: '',
-    photoURL: '',
-    uuid: '',
-    approved: false,
     category: '',
     condition: '',
     description: '',
     images: [],
-    ownerId: '',
     size: '',
     status: 'available',
   });
 
-  const [imageUrls, setImageUrls] = useState(['']);
+  const [imageFiles, setImageFiles] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
+  const [uploading, setUploading] = useState(false);
 
   const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: value,
     }));
   };
 
-  const handleImageUrlChange = (index, value) => {
-    const newUrls = [...imageUrls];
-    newUrls[index] = value;
-    setImageUrls(newUrls);
-    setFormData((prev) => ({
-      ...prev,
-      images: newUrls.filter((url) => url.trim() !== ''),
-    }));
+  const handleImageSelection = (e) => {
+    const files = Array.from(e.target.files);
+    
+    if (files.length > 0) {
+      const newImageFiles = [...imageFiles, ...files];
+      setImageFiles(newImageFiles);
+      
+      // Create preview URLs
+      const newPreviews = files.map(file => URL.createObjectURL(file));
+      setImagePreviews(prev => [...prev, ...newPreviews]);
+    }
   };
 
-  const addImageUrl = () => {
-    setImageUrls([...imageUrls, '']);
+  const removeImage = (index) => {
+    const newImageFiles = imageFiles.filter((_, i) => i !== index);
+    const newPreviews = imagePreviews.filter((_, i) => i !== index);
+    
+    // Clean up the object URL to prevent memory leaks
+    URL.revokeObjectURL(imagePreviews[index]);
+    
+    setImageFiles(newImageFiles);
+    setImagePreviews(newPreviews);
   };
 
-  const removeImageUrl = (index) => {
-    const newUrls = imageUrls.filter((_, i) => i !== index);
-    setImageUrls(newUrls);
-    setFormData((prev) => ({
-      ...prev,
-      images: newUrls.filter((url) => url.trim() !== ''),
-    }));
-  };
+  const uploadImages = async () => {
+    if (imageFiles.length === 0) return [];
 
-  const generateUUID = () => {
-    const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-      const r = (Math.random() * 16) | 0;
-      const v = c === 'x' ? r : (r & 0x3) | 0x8;
-      return v.toString(16);
+    const uploadPromises = imageFiles.map(async (file, index) => {
+      const timestamp = Date.now();
+      const fileName = `${user.id}_${timestamp}_${index}`;
+      const storageRef = ref(storage, `items/${fileName}`);
+      
+      const snapshot = await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      return downloadURL;
     });
-    setFormData((prev) => ({ ...prev, uuid }));
+
+    return Promise.all(uploadPromises);
   };
 
   const handleSubmit = async () => {
     try {
-      if (!formData.uuid) {
-        alert('UUID is required.');
+      if (!isLoaded || !user) {
+        alert("User not loaded");
         return;
       }
 
-      const userItemsRef = collection(db, 'users', formData.uuid, 'items');
-      await addDoc(userItemsRef, formData);
+      if (!formData.category || !formData.condition || !formData.description || !formData.size) {
+        alert("Please fill in all required fields");
+        return;
+      }
 
-      alert('Item created successfully!');
+      setUploading(true);
+
+      // Upload images first
+      const imageUrls = await uploadImages();
+
+      const userDocId = user.id;
+      const userItemsRef = collection(db, 'users', userDocId, 'items');
+
+      const itemData = {
+        ...formData,
+        images: imageUrls,
+        createdAt: new Date(),
+        userId: userDocId,
+        userName: user.fullName,
+        userEmail: user.primaryEmailAddress?.emailAddress,
+      };
+
+      await addDoc(userItemsRef, itemData);
+      alert('Item added successfully!');
+
+      // Reset form
+      setFormData({
+        category: '',
+        condition: '',
+        description: '',
+        images: [],
+        size: '',
+        status: 'available',
+      });
+      setImageFiles([]);
+      setImagePreviews([]);
+
     } catch (error) {
-      console.error('Error creating item:', error);
-      alert('Failed to create item.');
+      console.error('Error adding item:', error);
+      alert('Failed to add item. Please try again.');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -89,90 +133,20 @@ const CreateItemPage = () => {
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Photo URL</label>
-                <input
-                  type="url"
-                  name="photoURL"
-                  value={formData.photoURL}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">UUID</label>
-                <div className="flex">
-                  <input
-                    type="text"
-                    name="uuid"
-                    value={formData.uuid}
-                    onChange={handleInputChange}
-                    className="flex-1 px-3 py-2 border rounded-l-md"
-                    placeholder="Enter UUID or generate one"
-                  />
-                  <button
-                    type="button"
-                    onClick={generateUUID}
-                    className="px-4 py-2 bg-gray-600 text-white rounded-r-md hover:bg-gray-700"
-                  >
-                    Generate
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Owner ID</label>
-                <input
-                  type="text"
-                  name="ownerId"
-                  value={formData.ownerId}
-                  onChange={handleInputChange}
-                  placeholder="users/clerkid"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  required
-                />
-              </div>
-
-              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
                 <select
                   name="category"
                   value={formData.category}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 >
-                  <option value="">Select Category</option>
-                  <option value="jeans">Jeans</option>
-                  <option value="shirts">Shirts</option>
-                  <option value="dresses">Dresses</option>
-                  <option value="accessories">Accessories</option>
-                  <option value="shoes">Shoes</option>
-                  <option value="other">Other</option>
+                  <option value="" disabled>Select category</option>
+                  <option value="Jeans">Jeans</option>
+                  <option value="Shirts">Shirts</option>
+                  <option value="Jackets">Jackets</option>
+                  <option value="Dresses">Dresses</option>
+                  <option value="Shoes">Shoes</option>
                 </select>
               </div>
 
@@ -182,15 +156,14 @@ const CreateItemPage = () => {
                   name="condition"
                   value={formData.condition}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 >
-                  <option value="">Select Condition</option>
+                  <option value="" disabled>Select condition</option>
                   <option value="New">New</option>
                   <option value="Like New">Like New</option>
-                  <option value="Good">Good</option>
-                  <option value="Fair">Fair</option>
-                  <option value="Poor">Poor</option>
+                  <option value="Used">Used</option>
+                  <option value="Worn">Worn</option>
                 </select>
               </div>
 
@@ -200,16 +173,15 @@ const CreateItemPage = () => {
                   name="size"
                   value={formData.size}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 >
-                  <option value="">Select Size</option>
+                  <option value="" disabled>Select size</option>
                   <option value="XS">XS</option>
                   <option value="S">S</option>
                   <option value="M">M</option>
                   <option value="L">L</option>
                   <option value="XL">XL</option>
-                  <option value="XXL">XXL</option>
                 </select>
               </div>
 
@@ -219,7 +191,7 @@ const CreateItemPage = () => {
                   name="status"
                   value={formData.status}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="available">Available</option>
                   <option value="pending">Pending</option>
@@ -235,7 +207,7 @@ const CreateItemPage = () => {
                 value={formData.description}
                 onChange={handleInputChange}
                 rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Describe your item..."
                 required
               />
@@ -243,62 +215,76 @@ const CreateItemPage = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Images</label>
-              <div className="space-y-3">
-                {imageUrls.map((url, index) => (
-                  <div key={index} className="flex items-center space-x-2">
+              <div className="space-y-4">
+                {/* Image Upload Button */}
+                <div className="flex items-center justify-center w-full">
+                  <label htmlFor="image-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <Upload className="w-8 h-8 mb-2 text-gray-400" />
+                      <p className="mb-2 text-sm text-gray-500">
+                        <span className="font-semibold">Click to upload</span> or drag and drop
+                      </p>
+                      <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                    </div>
                     <input
-                      type="url"
-                      value={url}
-                      onChange={(e) => handleImageUrlChange(index, e.target.value)}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md"
-                      placeholder="Enter image URL"
+                      id="image-upload"
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleImageSelection}
+                      className="hidden"
                     />
-                    {imageUrls.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeImageUrl(index)}
-                        className="p-2 text-red-600 hover:text-red-800"
-                      >
-                        <X size={20} />
-                      </button>
-                    )}
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={addImageUrl}
-                  className="flex items-center space-x-2 px-4 py-2 text-blue-600 hover:text-blue-800"
-                >
-                  <Plus size={20} />
-                  <span>Add Another Image</span>
-                </button>
-              </div>
-            </div>
+                  </label>
+                </div>
 
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                name="approved"
-                checked={formData.approved}
-                onChange={handleInputChange}
-                className="h-4 w-4 text-blue-600 border-gray-300 rounded"
-              />
-              <label className="ml-2 block text-sm text-gray-700">Approved for listing</label>
+                {/* Image Previews */}
+                {imagePreviews.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {imagePreviews.map((preview, index) => (
+                      <div key={index} className="relative group">
+                        <Image
+                          src={preview}
+                          alt={`Preview ${index + 1}`}
+                          width={200}
+                          height={200}
+                          className="w-full h-32 object-cover rounded-lg border"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="flex justify-end space-x-4 pt-6">
               <button
                 type="button"
                 className="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                disabled={uploading}
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleSubmit}
-                className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                disabled={uploading}
+                className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
               >
-                Create Item
+                {uploading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Creating...</span>
+                  </>
+                ) : (
+                  <span>Create Item</span>
+                )}
               </button>
             </div>
           </div>

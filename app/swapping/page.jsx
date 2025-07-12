@@ -19,7 +19,7 @@ import {
   doc,
   getDoc
 } from "firebase/firestore";
-import { useAuth } from "@/hooks/useAuth"; // Assuming you have auth context
+import { useAuth } from "@/hooks/useAuth"; 
 
 export default function StartSwapping() {
   const [items, setItems] = useState([]);
