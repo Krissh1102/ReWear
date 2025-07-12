@@ -1,38 +1,80 @@
+"use client";
+
 import React from "react";
-import { Button } from "./ui/button";
+import Link from "next/link";
+import Image from "next/image";
 import {
+  useUser,
   SignedIn,
   SignedOut,
   SignInButton,
-  SignUpButton,
   UserButton,
 } from "@clerk/nextjs";
-import Link from "next/link";
-import Image from "next/image";
+import { Button } from "./ui/button";
 
 const Header = () => {
+  const { user } = useUser();
+
+  // Check if the signed-in user is an admin
+  const isAdmin = user?.publicMetadata?.role === "admin";
+
   return (
     <header className="fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b">
-      <nav className="mx-auto px-4 py-4 flex items-center justify-between">
-        <div>
-          <Link href="/">
-            <div className="w-36 h-auto">
-              <Image
-                src={"/logo.png"}
-                alt="logo"
-                width={200}
-                height={60}
-                className="h-12 w-auto object-contain"
-              />
-            </div>
-          </Link>
-        </div>
-        <div>
+      <nav className="mx-auto max-w-7xl px-4 py-4 flex items-center justify-between">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2">
+          <div className="w-36 h-auto">
+            <Image
+              src="/logo.png"
+              alt="ReWear Logo"
+              width={160}
+              height={40}
+              className="h-12 w-auto object-contain"
+            />
+          </div>
+        </Link>
+
+        {/* Right Side Buttons */}
+        <div className="flex items-center gap-6">
+          {/* Show Sign In if signed out */}
           <SignedOut>
-            <SignInButton />
+            <SignInButton mode="modal">
+              <Button className="bg-[#2C2522] text-white px-5">Sign In</Button>
+            </SignInButton>
           </SignedOut>
+
+          
           <SignedIn>
-            <UserButton />
+            <div className="flex items-center gap-4">
+              <Link href="/dashboard">
+                <Button variant="ghost" className="text-[#2C2522]">
+                  Dashboard
+                </Button>
+              </Link>
+
+              <Link href="/items">
+                <Button variant="ghost" className="text-[#2C2522]">
+                  Browse
+                </Button>
+              </Link>
+
+              <Link href="/create-listing">
+                <Button variant="outline" className="text-[#2C2522]">
+                  List Item
+                </Button>
+              </Link>
+
+              
+              {isAdmin && (
+                <Link href="/admin">
+                  <Button variant="destructive" className="text-white">
+                    Admin Panel
+                  </Button>
+                </Link>
+              )}
+
+              <UserButton afterSignOutUrl="/" />
+            </div>
           </SignedIn>
         </div>
       </nav>
