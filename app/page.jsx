@@ -1,4 +1,5 @@
-import Hero from "@/components/Hero";
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Stats from "@/components/Working";
@@ -8,6 +9,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, query, limit } from "firebase/firestore";
+import Features from "@/components/Features";
+import FAQ from "@/components/FAQs";
+import Feedback from "@/components/feedback";
 
 export default function Home() {
   const [featuredItems, setFeaturedItems] = useState([]);
@@ -17,7 +21,10 @@ export default function Home() {
       try {
         const q = query(collection(db, "items"), limit(4));
         const snapshot = await getDocs(q);
-        const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const items = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
         setFeaturedItems(items);
       } catch (err) {
         console.error("Failed to fetch featured items:", err);
