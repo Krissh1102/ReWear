@@ -101,10 +101,4 @@ Visit: [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## 📸 Demo Preview
-
-> *(Add screenshots/gifs or link to a demo video here if available)*
-
----
-
 Feel free to ⭐ the repo if you like the project, and follow for future updates!
