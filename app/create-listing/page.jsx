@@ -94,8 +94,16 @@ const CreateItemPage = () => {
       setImageFiles([]);
       setImagePreviews([]);
     } catch (error) {
-      console.error('[DEBUG] Error adding item:', error);
-      alert('Failed to add item. Please try again.');
+      console.error('Error adding item:', error);
+      
+      // Handle specific Firebase errors
+      if (error.code === 'failed-precondition' || error.code === 'unavailable') {
+        alert('Network connection issue. Please check your internet connection and try again.');
+      } else if (error.code === 'permission-denied') {
+        alert('Permission denied. Please make sure you are logged in.');
+      } else {
+        alert('Failed to add item. Please try again.');
+      }
     } finally {
       setUploading(false);
     }
