@@ -118,7 +118,15 @@ const CreateItemPage = () => {
 
     } catch (error) {
       console.error('Error adding item:', error);
-      alert('Failed to add item. Please try again.');
+      
+      // Handle specific Firebase errors
+      if (error.code === 'failed-precondition' || error.code === 'unavailable') {
+        alert('Network connection issue. Please check your internet connection and try again.');
+      } else if (error.code === 'permission-denied') {
+        alert('Permission denied. Please make sure you are logged in.');
+      } else {
+        alert('Failed to add item. Please try again.');
+      }
     } finally {
       setUploading(false);
     }
