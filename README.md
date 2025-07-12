@@ -1,36 +1,110 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 👕 ReWear
 
-## Getting Started
+**ReWear** is a sustainable clothing swap platform that promotes circular fashion.
+Built with **Next.js**, **MongoDB**, and **Clerk**, it allows users to donate, claim, and manage wearable items, while tracking real-world impact.
 
-First, run the development server:
+---
+
+## ✨ Features
+
+* 🔐 **Authentication with Clerk** – Seamless login and signup.
+* 📦 **Item Listings** – Users can create, view, and claim items.
+* 🔄 **Swapping Logic** – Claim items added by others; view your own.
+* 📈 **Admin Dashboard** – View user activity, control listings, and see impact stats.
+* 💬 **User Testimonials** – Share and read experiences.
+* 📊 **Impact Tracker** – Real-time statistics from the database.
+* ❌ **Error Handling** – Friendly UI messages and robust backend validation.
+
+---
+
+## 🧰 Tech Stack
+
+| Layer      | Tech Used               |
+| ---------- | ----------------------- |
+| Framework  | Next.js (App Router)    |
+| Database   | MongoDB (via Mongoose)  |
+| Auth       | Clerk                   |
+| Styling    | Tailwind CSS + Radix UI |
+| Charts     | Chart.js                |
+
+
+---
+
+## 🚀 Getting Started
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/your-username/rewear.git
+cd rewear
+```
+
+### 2. Install Dependencies
+
+```bash
+npm install
+```
+
+### 3. Configure Environment Variables
+
+Create a `.env.local` file:
+
+```env
+MONGODB_URI=mongodb://localhost/reWear
+CLERK_SECRET_KEY=your-clerk-secret-key
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your-clerk-publishable-key
+```
+
+🔑 You can get your Clerk keys from your Clerk Dashboard.
+
+### 4. Run the App
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit: [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📂 Folder Structure
 
-## Learn More
+```
+/
+├── app/                 # App directory (pages, routes)
+├── components/          # UI components (Card, Button, etc.)
+├── hooks/               # Custom React hooks (useAuth, etc.)
+├── lib/                 # Database config and utilities
+├── public/              # Static assets
+└── styles/              # Global styles (if any)
+```
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🔧 API Overview
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Route                  | Purpose                       |
+| ---------------------- | ----------------------------- |
+| `/api/items`           | CRUD operations for items     |
+| `/api/items/[id]/swap` | Handle swap logic             |
+| `/api/testimonials`    | Submit or fetch user feedback |
+| `/api/stats`           | Fetch real-time impact stats  |
 
-## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🙌 Acknowledgments
+
+* Clerk.dev for seamless auth.
+* Radix UI and Tailwind for great component accessibility.
+* Chart.js for powerful data visualization.
+* MongoDB for flexible data handling.
+
+---
+
+## 📸 Demo Preview
+
+> *(Add screenshots/gifs or link to a demo video here if available)*
+
+---
+
+Feel free to ⭐ the repo if you like the project, and follow for future updates!
