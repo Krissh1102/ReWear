@@ -5,8 +5,8 @@ import { useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
-import { db } from "@/lib/firebase";
-import { collection, getDocs, orderBy, query } from "firebase/firestore";
+// Removed: import { db } from "@/lib/firebase";
+// Removed: import { collection, getDocs, orderBy, query } from "firebase/firestore";
 
 const dummyPurchases = Array.from({ length: 6 }, (_, i) => ({
   id: i + 1,
@@ -23,17 +23,10 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchListings = async () => {
       if (!user) return;
-
       try {
         setLoading(true);
-        const itemsRef = collection(db, "users", user.id, "items");
-        const q = query(itemsRef, orderBy("createdAt", "desc"));
-        const snapshot = await getDocs(q);
-        const fetchedItems = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-
+        const res = await fetch(`/api/items?userId=${user.id}`);
+        const fetchedItems = await res.json();
         setItems(fetchedItems);
       } catch (error) {
         console.error("Error fetching items:", error);
@@ -41,7 +34,6 @@ export default function Dashboard() {
         setLoading(false);
       }
     };
-
     if (isLoaded) {
       fetchListings();
     }

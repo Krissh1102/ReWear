@@ -7,31 +7,57 @@ import { categories, products } from "@/lib/data";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { db } from "@/lib/firebase";
-import { collection, getDocs, query, limit } from "firebase/firestore";
 import Features from "@/components/Features";
 import FAQ from "@/components/FAQs";
 import Feedback from "@/components/feedback";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
 
 export default function Home() {
   const [featuredItems, setFeaturedItems] = useState([]);
+  const [testimonials, setTestimonials] = useState([]);
+  const [stats, setStats] = useState({ totalSwapped: 0, textileWasteSaved: '0.00', totalUsers: 0 });
 
   useEffect(() => {
     const fetchFeatured = async () => {
       try {
-        const q = query(collection(db, "items"), limit(4));
-        const snapshot = await getDocs(q);
-        const items = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+        const res = await fetch("/api/items?limit=4");
+        const items = await res.json();
         setFeaturedItems(items);
       } catch (err) {
         console.error("Failed to fetch featured items:", err);
       }
     };
-
     fetchFeatured();
+  }, []);
+
+  useEffect(() => {
+    const fetchTestimonials = async () => {
+      try {
+        const res = await fetch("/api/testimonials?limit=6");
+        const items = await res.json();
+        setTestimonials(items);
+      } catch (err) {
+        console.error("Failed to fetch testimonials:", err);
+      }
+    };
+    fetchTestimonials();
+  }, []);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch("/api/stats");
+        const data = await res.json();
+        setStats(data);
+      } catch (err) {
+        console.error("Failed to fetch stats:", err);
+      }
+    };
+    fetchStats();
   }, []);
 
   return (
@@ -113,30 +139,43 @@ export default function Home() {
         <h3 className="text-4xl font-bold text-center mb-12 text-[#2C2522]">
           Featured Items
         </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {products.map((item) => (
-            <div
-              key={item.id}
-              className="border rounded-lg p-4 hover:shadow-md transition flex flex-col items-center"
-            >
-              <Image
-                src={item.image}
-                alt={item.title}
-                width={200}
-                height={200}
-                className="rounded mb-4"
-              />
-              <h4 className="font-semibold text-[#2C2522] mb-1 text-center">
-                {item.title}
-              </h4>
-              <p className="text-sm text-[#4B403D] mb-3 text-center">
-                {item.description}
-              </p>
-              <Button className="w-full bg-[#2C2522] text-white">
-                Swap or Redeem
-              </Button>
-            </div>
-          ))}
+        <div className="max-w-6xl mx-auto">
+          <Swiper
+            modules={[Navigation, Pagination]}
+            spaceBetween={24}
+            slidesPerView={1}
+            navigation
+            pagination={{ clickable: true }}
+            breakpoints={{
+              640: { slidesPerView: 2 },
+              1024: { slidesPerView: 3 },
+              1280: { slidesPerView: 4 },
+            }}
+            className="!pb-12"
+          >
+            {products.map((item) => (
+              <SwiperSlide key={item.id}>
+                <div className="border rounded-lg p-4 hover:shadow-md transition flex flex-col items-center bg-white">
+                  <Image
+                    src={item.image}
+                    alt={item.title}
+                    width={200}
+                    height={200}
+                    className="rounded mb-4"
+                  />
+                  <h4 className="font-semibold text-[#2C2522] mb-1 text-center">
+                    {item.title}
+                  </h4>
+                  <p className="text-sm text-[#4B403D] mb-3 text-center">
+                    {item.description}
+                  </p>
+                  <Button className="w-full bg-[#2C2522] text-white">
+                    Swap or Redeem
+                  </Button>
+                </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
         </div>
       </section>
 
@@ -147,15 +186,15 @@ export default function Home() {
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-[#4B403D] font-medium">
           <div className="border rounded-lg p-6 text-center">
-            <h4 className="text-3xl font-bold text-[#2C2522] mb-2">500+</h4>
+            <h4 className="text-3xl font-bold text-[#2C2522] mb-2">{stats.totalSwapped}</h4>
             Clothes Swapped
           </div>
           <div className="border rounded-lg p-6 text-center">
-            <h4 className="text-3xl font-bold text-[#2C2522] mb-2">1.2 Tons</h4>
+            <h4 className="text-3xl font-bold text-[#2C2522] mb-2">{stats.textileWasteSaved} Tons</h4>
             Textile Waste Saved
           </div>
           <div className="border rounded-lg p-6 text-center">
-            <h4 className="text-3xl font-bold text-[#2C2522] mb-2">1000+</h4>
+            <h4 className="text-3xl font-bold text-[#2C2522] mb-2">{stats.totalUsers}</h4>
             Happy Swappers
           </div>
         </div>
@@ -172,25 +211,16 @@ export default function Home() {
           What Our Users Say 💬
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="bg-[#f5f4f2] p-6 rounded-lg shadow">
-            <p className="italic">
-              "I love how easy it is to swap clothes here! It's eco-friendly and
-              fun."
-            </p>
-            <p className="mt-4 font-medium text-[#2C2522]">- Aisha R.</p>
-          </div>
-          <div className="bg-[#f5f4f2] p-6 rounded-lg shadow">
-            <p className="italic">
-              "Saved money and gave away clothes I no longer wear. Win-win!"
-            </p>
-            <p className="mt-4 font-medium text-[#2C2522]">- Ravi K.</p>
-          </div>
-          <div className="bg-[#f5f4f2] p-6 rounded-lg shadow">
-            <p className="italic">
-              "Love the points system. I got a new dress for free!"
-            </p>
-            <p className="mt-4 font-medium text-[#2C2522]">- Meera P.</p>
-          </div>
+          {testimonials.length === 0 ? (
+            <div className="col-span-full text-center text-gray-500">No testimonials yet. Be the first to share your experience!</div>
+          ) : (
+            testimonials.map((t) => (
+              <div key={t.id} className="bg-[#f5f4f2] p-6 rounded-lg shadow">
+                <p className="italic">"{t.message}"</p>
+                <p className="mt-4 font-medium text-[#2C2522]">- {t.name}</p>
+              </div>
+            ))
+          )}
         </div>
       </section>
       <Feedback />
