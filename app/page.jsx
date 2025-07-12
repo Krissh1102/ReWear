@@ -1,13 +1,14 @@
 import Hero from "@/components/Hero";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { categories, products } from "@/lib/data";
 import Image from "next/image";
 import Link from "next/link";
 
 export default function Home() {
   return (
     <div className="mt-35 text-center">
-      {/* Hero Text */}
+      {/* Hero Section */}
       <h2 className="text-3xl sm:text-5xl font-bold mb-6 text-[#2C2522] leading-tight">
         Swap Clothes. Save Money. <br className="hidden sm:block" /> Save the
         Planet.
@@ -25,7 +26,6 @@ export default function Home() {
             Start Swapping
           </Button>
         </Link>
-
         <Link href="/items">
           <Button className="px-6 py-3 text-lg bg-[#2C2522] text-white hover:bg-[#403733] transition">
             Browse Items
@@ -33,7 +33,7 @@ export default function Home() {
         </Link>
       </div>
 
-      {/* Search Bar */}
+      {/* Search
       <div className="flex w-full items-center gap-2 justify-center mt-10 px-4">
         <div className="flex w-full max-w-md items-center gap-2">
           <Input
@@ -45,82 +45,57 @@ export default function Home() {
             Search
           </Button>
         </div>
-      </div>
+      </div> */}
 
-      
-
-      {/* Category Section */}
+      {/* Categories Section */}
       <section className="py-12 px-4">
         <h3 className="text-2xl font-semibold mb-8 text-[#2C2522]">
           Popular Categories
         </h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 justify-center">
-          <div className="p-4 border rounded-lg hover:shadow-lg transition">
-            <Image
-              src="/images/tshirt.png"
-              alt="Tops"
-              width={80}
-              height={80}
-              className="mx-auto mb-2"
-            />
-            <p className="font-medium text-[#4B403D]">Tops</p>
-          </div>
-          <div className="p-4 border rounded-lg hover:shadow-lg transition">
-            <Image
-              src="/images/jeans.png"
-              alt="Bottoms"
-              width={80}
-              height={80}
-              className="mx-auto mb-2"
-            />
-            <p className="font-medium text-[#4B403D]">Jeans & Pants</p>
-          </div>
-          <div className="p-4 border rounded-lg hover:shadow-lg transition">
-            <Image
-              src="/images/dress.png"
-              alt="Dresses"
-              width={80}
-              height={80}
-              className="mx-auto mb-2"
-            />
-            <p className="font-medium text-[#4B403D]">Dresses</p>
-          </div>
-          <div className="p-4 border rounded-lg hover:shadow-lg transition">
-            <Image
-              src="/images/jacket.png"
-              alt="Outerwear"
-              width={80}
-              height={80}
-              className="mx-auto mb-2"
-            />
-            <p className="font-medium text-[#4B403D]">Outerwear</p>
-          </div>
+          {categories.map((cat) => (
+            <div
+              key={cat.id}
+              className="p-4 border rounded-lg hover:shadow-md transition flex flex-col items-center"
+            >
+              <Image
+                src={cat.image}
+                alt={cat.name}
+                width={80}
+                height={80}
+                className="mb-3 rounded"
+              />
+              <p className="font-medium text-[#4B403D] text-center">
+                {cat.name}
+              </p>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* Product Listing Section */}
+      {/* Featured Items Section */}
       <section className="py-12 px-4 bg-[#f9f7f6]">
         <h3 className="text-2xl font-semibold mb-8 text-[#2C2522]">
           Featured Items
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map((item) => (
+          {products.map((item) => (
             <div
-              key={item}
-              className="border rounded-lg p-4 hover:shadow-lg transition"
+              key={item.id}
+              className="border rounded-lg p-4 hover:shadow-md transition flex flex-col items-center"
             >
               <Image
-                src="/images/sample-cloth.jpg"
-                alt="Clothing Item"
+                src={item.image}
+                alt={item.title}
                 width={200}
                 height={200}
-                className="rounded mb-4 mx-auto"
+                className="rounded mb-4"
               />
-              <h4 className="font-semibold text-[#2C2522] mb-1">
-                Floral Summer Dress
+              <h4 className="font-semibold text-[#2C2522] mb-1 text-center">
+                {item.title}
               </h4>
-              <p className="text-sm text-[#4B403D] mb-2">
-                Size: M | Condition: Like New
+              <p className="text-sm text-[#4B403D] mb-3 text-center">
+                {item.description}
               </p>
               <Button className="w-full bg-[#2C2522] text-white">
                 Swap or Redeem
@@ -130,22 +105,76 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Impact Section */}
       <section className="py-12 px-4">
         <h3 className="text-2xl font-semibold mb-6 text-[#2C2522]">
           Our Impact So Far 🌱
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-[#4B403D] font-medium">
-          <div className="border rounded-lg p-6">
+          <div className="border rounded-lg p-6 text-center">
             <h4 className="text-3xl font-bold text-[#2C2522] mb-2">500+</h4>
             Clothes Swapped
           </div>
-          <div className="border rounded-lg p-6">
+          <div className="border rounded-lg p-6 text-center">
             <h4 className="text-3xl font-bold text-[#2C2522] mb-2">1.2 Tons</h4>
             Textile Waste Saved
           </div>
-          <div className="border rounded-lg p-6">
+          <div className="border rounded-lg p-6 text-center">
             <h4 className="text-3xl font-bold text-[#2C2522] mb-2">1000+</h4>
             Happy Swappers
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section className="py-12 px-4 bg-[#f9f7f6]">
+        <h3 className="text-2xl font-semibold mb-6 text-[#2C2522]">
+          How It Works 🔄
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-[#4B403D]">
+          <div className="p-4 border rounded-lg text-center">
+            <h4 className="font-semibold text-xl mb-2">1. List Your Clothes</h4>
+            <p>Upload photos, describe the item, and set availability.</p>
+          </div>
+          <div className="p-4 border rounded-lg text-center">
+            <h4 className="font-semibold text-xl mb-2">2. Browse & Request</h4>
+            <p>
+              Find items you like and send a swap or point redemption request.
+            </p>
+          </div>
+          <div className="p-4 border rounded-lg text-center">
+            <h4 className="font-semibold text-xl mb-2">3. Swap & Enjoy</h4>
+            <p>
+              Once accepted, arrange pickup/delivery and enjoy your new outfit.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-12 px-4">
+        <h3 className="text-2xl font-semibold mb-6 text-[#2C2522]">
+          What Our Users Say 💬
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="bg-[#f5f4f2] p-6 rounded-lg shadow">
+            <p className="italic">
+              "I love how easy it is to swap clothes here! It's eco-friendly and
+              fun."
+            </p>
+            <p className="mt-4 font-medium text-[#2C2522]">- Aisha R.</p>
+          </div>
+          <div className="bg-[#f5f4f2] p-6 rounded-lg shadow">
+            <p className="italic">
+              "Saved money and gave away clothes I no longer wear. Win-win!"
+            </p>
+            <p className="mt-4 font-medium text-[#2C2522]">- Ravi K.</p>
+          </div>
+          <div className="bg-[#f5f4f2] p-6 rounded-lg shadow">
+            <p className="italic">
+              "Love the points system. I got a new dress for free!"
+            </p>
+            <p className="mt-4 font-medium text-[#2C2522]">- Meera P.</p>
           </div>
         </div>
       </section>
