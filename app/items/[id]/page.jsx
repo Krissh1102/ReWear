@@ -1,7 +1,9 @@
 import Image from 'next/image';
+import SwapButton from '../../../components/SwapButton';
 
 export default async function ItemDetailPage({ params }) {
-  const { id } = params;
+  let errorMsg = null;
+  const { id } = await params;
   let item = null;
   let notFound = false;
   try {
@@ -13,9 +15,10 @@ export default async function ItemDetailPage({ params }) {
     }
   } catch (err) {
     notFound = true;
+    errorMsg = err.message || 'An error occurred.';
   }
 
-  if (notFound || !item) return <div className="text-center py-12 text-red-500">Item not found.</div>;
+  if (notFound || !item) return <div className="text-center py-12 text-red-500">{errorMsg || 'Item not found.'}</div>;
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12 mt-15">
@@ -39,6 +42,9 @@ export default async function ItemDetailPage({ params }) {
           <div className="mb-2"><b>Listed on:</b> {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : ''}</div>
         </div>
       </div>
+      {item.status === 'available' && (
+        <SwapButton itemId={item._id} disabled={item.status !== 'available'} />
+      )}
     </div>
   );
 } 
