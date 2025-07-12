@@ -33,6 +33,33 @@ ChartJS.register(
   Legend
 );
 
+const dummyUsers = [
+  { id: 1, name: "Alice", email: "alice@example.com", role: "user" },
+  { id: 2, name: "Bob", email: "bob@example.com", role: "user" },
+  { id: 3, name: "Admin", email: "admin@rewear.com", role: "admin" },
+];
+
+const dummyListings = [
+  { id: 1, title: "Denim Jacket", status: "active", user: "Alice" },
+  { id: 2, title: "Red Dress", status: "flagged", user: "Bob" },
+  { id: 3, title: "Leather Boots", status: "sold", user: "Alice" },
+];
+
+// Dummy swaps data
+const dummySwaps = [
+  { id: 1, item: "Denim Jacket", userA: "Alice", userB: "Bob", status: "completed", createdAt: new Date(Date.now() - 86400000 * 2), resolved: true },
+  { id: 2, item: "Red Dress", userA: "Bob", userB: "Admin", status: "pending", createdAt: new Date(Date.now() - 86400000 * 5), resolved: false },
+  { id: 3, item: "Leather Boots", userA: "Alice", userB: "Admin", status: "disputed", createdAt: new Date(Date.now() - 86400000 * 10), resolved: false },
+];
+
+// Dummy categories and settings data
+const dummyCategories = [
+  { id: 1, name: "Tops", itemCount: 245, active: true },
+  { id: 2, name: "Jeans & Pants", itemCount: 189, active: true },
+  { id: 3, name: "Dresses", itemCount: 156, active: true },
+  { id: 4, name: "Outerwear", itemCount: 98, active: true },
+];
+
 const SIDEBAR_LINKS = [
   { key: "dashboard", label: "Dashboard" },
   { key: "users", label: "Users" },
@@ -65,14 +92,10 @@ export default function AdminDashboard() {
   const [swapSort, setSwapSort] = useState("createdAt");
   const [swapSortDir, setSwapSortDir] = useState("desc");
   const [swapStatusFilter, setSwapStatusFilter] = useState("");
-  const [categories, setCategories] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [items, setItems] = useState([]);
-  const [swaps, setSwaps] = useState([]); // If you have a swaps API, otherwise leave as []
+  const [categories, setCategories] = useState(dummyCategories);
   const [newCategory, setNewCategory] = useState("");
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [defaultPoints, setDefaultPoints] = useState(25);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (isLoaded && user?.publicMetadata?.role !== "admin") {
@@ -80,64 +103,29 @@ export default function AdminDashboard() {
     }
   }, [user, isLoaded]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const [usersRes, itemsRes, categoriesRes] = await Promise.all([
-          fetch("/api/users"),
-          fetch("/api/items"),
-          fetch("/api/categories") // If you have a categories API, otherwise use static
-        ]);
-        const usersData = await usersRes.json();
-        const itemsData = await itemsRes.json();
-        let categoriesData = [];
-        if (categoriesRes.ok) {
-          categoriesData = await categoriesRes.json();
-        } else {
-          // fallback to static if no API
-          categoriesData = [
-            { id: 1, name: "Tops", itemCount: 0, active: true },
-            { id: 2, name: "Jeans & Pants", itemCount: 0, active: true },
-            { id: 3, name: "Dresses", itemCount: 0, active: true },
-            { id: 4, name: "Outerwear", itemCount: 0, active: true }
-          ];
-        }
-        setUsers(usersData);
-        setItems(itemsData);
-        setCategories(categoriesData);
-      } catch (err) {
-        console.error("Failed to fetch admin data:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [isLoaded]);
+  if (!isLoaded) return <div className="text-center mt-20">Loading...</div>;
 
-  if (!isLoaded || loading) return <div className="text-center mt-20">Loading...</div>;
-
-  // Calculate metrics from real data
+  // Calculate metrics
   const now = new Date();
-  const activeUsers = users.filter(u => {
-    const lastLogin = u.lastLoginAt ? new Date(u.lastLoginAt) : null;
+  const activeUsers = dummyUsers.filter(u => {
+    const lastLogin = u.lastLoginAt?.toDate ? u.lastLoginAt.toDate() : u.lastLoginAt;
     return lastLogin && isAfter(lastLogin, subDays(now, 7));
   });
-  const newUsers = users.filter(u => {
-    const joined = u.joinedAt ? new Date(u.joinedAt) : null;
+  const newUsers = dummyUsers.filter(u => {
+    const joined = u.joinedAt?.toDate ? u.joinedAt.toDate() : u.joinedAt;
     return joined && isAfter(joined, subDays(now, 7));
   });
-  const pendingApprovals = items.filter(l => l.status === "pending");
-  const flaggedListings = items.filter(l => l.status === "flagged");
-  const recentUsers = [...users]
-    .sort((a, b) => new Date(b.joinedAt) - new Date(a.joinedAt))
+  const pendingApprovals = dummyListings.filter(l => l.status === "pending");
+  const flaggedListings = dummyListings.filter(l => l.status === "flagged");
+  const recentUsers = [...dummyUsers]
+    .sort((a, b) => (b.joinedAt?.seconds || 0) - (a.joinedAt?.seconds || 0))
     .slice(0, 5);
-  const recentListings = [...items]
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  const recentListings = [...dummyListings]
+    .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
     .slice(0, 5);
 
   // Filter, search, and sort users
-  let filteredUsers = users.filter(u => {
+  let filteredUsers = dummyUsers.filter(u => {
     const name = (u.name || u.fullName || "").toLowerCase();
     const email = (u.email || u.emailAddress || "").toLowerCase();
     const search = userSearch.toLowerCase();
@@ -150,16 +138,16 @@ export default function AdminDashboard() {
   filteredUsers = filteredUsers.sort((a, b) => {
     let aVal = a[userSort];
     let bVal = b[userSort];
-    if (aVal && typeof aVal === 'string' && !isNaN(Date.parse(aVal))) aVal = new Date(aVal);
-    if (bVal && typeof bVal === 'string' && !isNaN(Date.parse(bVal))) bVal = new Date(bVal);
+    if (aVal?.toDate) aVal = aVal.toDate();
+    if (bVal?.toDate) bVal = bVal.toDate();
     if (userSortDir === "desc") return bVal > aVal ? 1 : -1;
     return aVal > bVal ? 1 : -1;
   });
 
   // Filter, search, and sort items
-  let filteredItems = items.filter(item => {
+  let filteredItems = dummyListings.filter(item => {
     const title = (item.title || "").toLowerCase();
-    const user = (item.userName || item.user || "").toLowerCase();
+    const user = (item.user || "").toLowerCase();
     const search = itemSearch.toLowerCase();
     const status = item.status || "";
     const category = item.category || "";
@@ -172,14 +160,14 @@ export default function AdminDashboard() {
   filteredItems = filteredItems.sort((a, b) => {
     let aVal = a[itemSort];
     let bVal = b[itemSort];
-    if (aVal && typeof aVal === 'string' && !isNaN(Date.parse(aVal))) aVal = new Date(aVal);
-    if (bVal && typeof bVal === 'string' && !isNaN(Date.parse(bVal))) bVal = new Date(bVal);
+    if (aVal?.toDate) aVal = aVal.toDate();
+    if (bVal?.toDate) bVal = bVal.toDate();
     if (itemSortDir === "desc") return bVal > aVal ? 1 : -1;
     return aVal > bVal ? 1 : -1;
   });
 
-  // Filter, search, and sort swaps (if implemented)
-  let filteredSwaps = swaps.filter(swap => {
+  // Filter, search, and sort swaps
+  let filteredSwaps = dummySwaps.filter(swap => {
     const item = (swap.item || "").toLowerCase();
     const userA = (swap.userA || "").toLowerCase();
     const userB = (swap.userB || "").toLowerCase();
@@ -193,8 +181,8 @@ export default function AdminDashboard() {
   filteredSwaps = filteredSwaps.sort((a, b) => {
     let aVal = a[swapSort];
     let bVal = b[swapSort];
-    if (aVal && typeof aVal === 'string' && !isNaN(Date.parse(aVal))) aVal = new Date(aVal);
-    if (bVal && typeof bVal === 'string' && !isNaN(Date.parse(bVal))) bVal = new Date(bVal);
+    if (aVal?.toDate) aVal = aVal.toDate();
+    if (bVal?.toDate) bVal = bVal.toDate();
     if (swapSortDir === "desc") return bVal > aVal ? 1 : -1;
     return aVal > bVal ? 1 : -1;
   });
@@ -330,7 +318,7 @@ export default function AdminDashboard() {
                   <CardTitle>Total Users</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-4xl font-bold">{users.length}</div>
+                  <div className="text-4xl font-bold">{dummyUsers.length}</div>
                 </CardContent>
               </Card>
               <Card>
@@ -354,7 +342,7 @@ export default function AdminDashboard() {
                   <CardTitle>Total Listings</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-4xl font-bold">{items.length}</div>
+                  <div className="text-4xl font-bold">{dummyListings.length}</div>
                 </CardContent>
               </Card>
               <Card>
