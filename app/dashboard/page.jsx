@@ -1,16 +1,12 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
-
-const dummyListings = Array.from({ length: 8 }, (_, i) => ({
-  id: i + 1,
-  title: `Clothing Item ${i + 1}`,
-  image: `https://source.unsplash.com/random/400x300?clothing&sig=${i}`,
-  description: "Good quality, lightly used.",
-}));
+import { db } from "@/lib/firebase";
+import { collection, getDocs } from "firebase/firestore";
 
 const dummyPurchases = Array.from({ length: 6 }, (_, i) => ({
   id: i + 1,
@@ -21,6 +17,30 @@ const dummyPurchases = Array.from({ length: 6 }, (_, i) => ({
 
 export default function Dashboard() {
   const { user, isLoaded } = useUser();
+  const [items, setItems] = useState([]);
+
+  useEffect(() => {
+    const fetchListings = async () => {
+      if (!user) return;
+
+      try {
+        const itemsRef = collection(db, "users", user.id, "items");
+        const snapshot = await getDocs(itemsRef);
+        const fetchedItems = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        setItems(fetchedItems);
+      } catch (error) {
+        console.error("Error fetching items:", error);
+      }
+    };
+
+    if (isLoaded) {
+      fetchListings();
+    }
+  }, [isLoaded, user]);
 
   if (!isLoaded) return <div className="text-center mt-20">Loading...</div>;
 
@@ -56,26 +76,35 @@ export default function Dashboard() {
             <Button variant="outline">View All</Button>
           </Link>
         </div>
-        <div className="overflow-x-auto">
-          <div className="flex gap-6 w-max">
-            {dummyListings.map((item) => (
-              <div key={item.id} className="min-w-[260px] border rounded-lg p-4">
-                <Image
-                  src={item.image}
-                  alt={item.title}
-                  width={300}
-                  height={200}
-                  className="rounded w-full h-48 object-cover mb-4"
-                />
-                <h3 className="font-bold text-lg text-[#2C2522] mb-1">{item.title}</h3>
-                <p className="text-sm text-[#4B403D]">{item.description}</p>
-              </div>
-            ))}
+
+        {items.length === 0 ? (
+          <p className="text-gray-500">No items listed yet.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <div className="flex gap-6 w-max">
+              {items.map((item) => (
+                <div key={item.id} className="min-w-[260px] border rounded-lg p-4">
+                  <Image
+                    src={item.images?.[0] || "/placeholder.png"}
+                    alt={item.description || "Item"}
+                    width={300}
+                    height={200}
+                    className="rounded w-full h-48 object-cover mb-4"
+                  />
+                  <h3 className="font-bold text-lg text-[#2C2522] mb-1">
+                    {item.category || "Untitled Item"}
+                  </h3>
+                  <p className="text-sm text-[#4B403D]">
+                    {item.description?.substring(0, 50) || "No description"}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </section>
 
-      {/* Purchases Preview */}
+      {/* Purchases Preview (static) */}
       <section>
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-semibold text-[#2C2522]">My Purchases</h2>

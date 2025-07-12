@@ -1,6 +1,3 @@
-import FAQ from "@/components/FAQs";
-import Features from "@/components/Features";
-import Feedback from "@/components/feedback";
 import Hero from "@/components/Hero";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,8 +5,28 @@ import Stats from "@/components/Working";
 import { categories, products } from "@/lib/data";
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { db } from "@/lib/firebase";
+import { collection, getDocs, query, limit } from "firebase/firestore";
 
 export default function Home() {
+  const [featuredItems, setFeaturedItems] = useState([]);
+
+  useEffect(() => {
+    const fetchFeatured = async () => {
+      try {
+        const q = query(collection(db, "items"), limit(4));
+        const snapshot = await getDocs(q);
+        const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setFeaturedItems(items);
+      } catch (err) {
+        console.error("Failed to fetch featured items:", err);
+      }
+    };
+
+    fetchFeatured();
+  }, []);
+
   return (
     <div className="mt-35 text-center">
       {/* Hero Section */}
