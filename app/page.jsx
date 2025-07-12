@@ -1,6 +1,10 @@
+import FAQ from "@/components/FAQs";
+import Features from "@/components/Features";
+import Feedback from "@/components/feedback";
 import Hero from "@/components/Hero";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import Stats from "@/components/Working";
 import { categories, products } from "@/lib/data";
 import Image from "next/image";
 import Link from "next/link";
@@ -46,10 +50,17 @@ export default function Home() {
           </Button>
         </div>
       </div> */}
-
+      <div className="my-10">
+        <img
+          src="/hero.gif"
+          alt="Algorithm Animation Preview"
+          className="mx-auto  max-w-full sm:max-w-md"
+        />
+      </div>
+      <Features />
       {/* Categories Section */}
-      <section className="py-12 px-4">
-        <h3 className="text-2xl font-semibold mb-8 text-[#2C2522]">
+      <section className="py-12 px-4 bg-[#f9f7f6]">
+        <h3 className="text-4xl font-bold text-center mb-12 text-[#2C2522]">
           Popular Categories
         </h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 justify-center">
@@ -74,8 +85,8 @@ export default function Home() {
       </section>
 
       {/* Featured Items Section */}
-      <section className="py-12 px-4 bg-[#f9f7f6]">
-        <h3 className="text-2xl font-semibold mb-8 text-[#2C2522]">
+      <section className="py-12 px-4 ">
+        <h3 className="text-4xl font-bold text-center mb-12 text-[#2C2522]">
           Featured Items
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -106,8 +117,8 @@ export default function Home() {
       </section>
 
       {/* Impact Section */}
-      <section className="py-12 px-4">
-        <h3 className="text-2xl font-semibold mb-6 text-[#2C2522]">
+      <section className="py-12 px-4 bg-[#f9f7f6]">
+        <h3 className="text-4xl font-bold text-center mb-12 text-[#2C2522]">
           Our Impact So Far 🌱
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-[#4B403D] font-medium">
@@ -127,33 +138,13 @@ export default function Home() {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-12 px-4 bg-[#f9f7f6]">
-        <h3 className="text-2xl font-semibold mb-6 text-[#2C2522]">
-          How It Works 🔄
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-[#4B403D]">
-          <div className="p-4 border rounded-lg text-center">
-            <h4 className="font-semibold text-xl mb-2">1. List Your Clothes</h4>
-            <p>Upload photos, describe the item, and set availability.</p>
-          </div>
-          <div className="p-4 border rounded-lg text-center">
-            <h4 className="font-semibold text-xl mb-2">2. Browse & Request</h4>
-            <p>
-              Find items you like and send a swap or point redemption request.
-            </p>
-          </div>
-          <div className="p-4 border rounded-lg text-center">
-            <h4 className="font-semibold text-xl mb-2">3. Swap & Enjoy</h4>
-            <p>
-              Once accepted, arrange pickup/delivery and enjoy your new outfit.
-            </p>
-          </div>
-        </div>
-      </section>
+      <Stats />
+
+      <FAQ />
 
       {/* Testimonials Section */}
       <section className="py-12 px-4">
-        <h3 className="text-2xl font-semibold mb-6 text-[#2C2522]">
+        <h3 className="text-4xl font-bold text-center mb-12 text-[#2C2522]">
           What Our Users Say 💬
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -178,6 +169,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+      <Feedback />
     </div>
   );
 }

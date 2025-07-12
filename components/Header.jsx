@@ -15,7 +15,6 @@ import { Button } from "./ui/button";
 const Header = () => {
   const { user } = useUser();
 
-  // Check if the signed-in user is an admin
   const isAdmin = user?.publicMetadata?.role === "admin";
 
   return (
@@ -34,37 +33,39 @@ const Header = () => {
           </div>
         </Link>
 
-        {/* Right Side Buttons */}
         <div className="flex items-center gap-6">
-          {/* Show Sign In if signed out */}
+          {/* Show if user is signed out */}
           <SignedOut>
             <SignInButton mode="modal">
               <Button className="bg-[#2C2522] text-white px-5">Sign In</Button>
             </SignInButton>
           </SignedOut>
 
-          
+          {/* Show if user is signed in */}
           <SignedIn>
             <div className="flex items-center gap-4">
-              <Link href="/dashboard">
-                <Button variant="ghost" className="text-[#2C2522]">
-                  Dashboard
-                </Button>
-              </Link>
+              {!isAdmin && (
+                <>
+                  <Link href="/dashboard">
+                    <Button variant="ghost" className="text-[#2C2522]">
+                      Dashboard
+                    </Button>
+                  </Link>
 
-              <Link href="/items">
-                <Button variant="ghost" className="text-[#2C2522]">
-                  Browse
-                </Button>
-              </Link>
+                  <Link href="/items">
+                    <Button variant="ghost" className="text-[#2C2522]">
+                      Browse
+                    </Button>
+                  </Link>
 
-              <Link href="/create-listing">
-                <Button variant="outline" className="text-[#2C2522]">
-                  List Item
-                </Button>
-              </Link>
+                  <Link href="/create-listing">
+                    <Button variant="outline" className="text-[#2C2522]">
+                      List Item
+                    </Button>
+                  </Link>
+                </>
+              )}
 
-              
               {isAdmin && (
                 <Link href="/admin">
                   <Button variant="destructive" className="text-white">
