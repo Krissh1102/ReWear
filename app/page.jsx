@@ -1,10 +1,32 @@
+"use client";
+
 import Hero from "@/components/Hero";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { db } from "@/lib/firebase";
+import { collection, getDocs, query, limit } from "firebase/firestore";
 
 export default function Home() {
+  const [featuredItems, setFeaturedItems] = useState([]);
+
+  useEffect(() => {
+    const fetchFeatured = async () => {
+      try {
+        const q = query(collection(db, "items"), limit(4));
+        const snapshot = await getDocs(q);
+        const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setFeaturedItems(items);
+      } catch (err) {
+        console.error("Failed to fetch featured items:", err);
+      }
+    };
+
+    fetchFeatured();
+  }, []);
+
   return (
     <div className="mt-35 text-center">
       {/* Hero Text */}
@@ -20,18 +42,18 @@ export default function Home() {
 
       {/* Buttons */}
       <div className="flex flex-col sm:flex-row justify-center gap-4">
-        <Link href="/items">
-          <Button className="px-6 py-3 text-lg bg-[#2C2522] text-white hover:bg-[#403733] transition">
-            Start Swapping
-          </Button>
-        </Link>
+  <Link href="/swapping">
+    <Button className="px-6 py-3 text-lg bg-[#2C2522] text-white hover:bg-[#403733] transition">
+      Start Swapping
+    </Button>
+  </Link>
 
-        <Link href="/items">
-          <Button className="px-6 py-3 text-lg bg-[#2C2522] text-white hover:bg-[#403733] transition">
-            Browse Items
-          </Button>
-        </Link>
-      </div>
+  <Link href="/items">
+    <Button className="px-6 py-3 text-lg bg-[#2C2522] text-white hover:bg-[#403733] transition">
+      Browse Items
+    </Button>
+  </Link>
+</div>
 
       {/* Search Bar */}
       <div className="flex w-full items-center gap-2 justify-center mt-10 px-4">
@@ -46,8 +68,6 @@ export default function Home() {
           </Button>
         </div>
       </div>
-
-      
 
       {/* Category Section */}
       <section className="py-12 px-4">
@@ -104,23 +124,23 @@ export default function Home() {
           Featured Items
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map((item) => (
+          {featuredItems.map((item) => (
             <div
-              key={item}
+              key={item.id}
               className="border rounded-lg p-4 hover:shadow-lg transition"
             >
               <Image
-                src="/images/sample-cloth.jpg"
-                alt="Clothing Item"
+                src={item.images?.[0] || "/images/sample-cloth.jpg"}
+                alt={item.title}
                 width={200}
                 height={200}
                 className="rounded mb-4 mx-auto"
               />
               <h4 className="font-semibold text-[#2C2522] mb-1">
-                Floral Summer Dress
+                {item.title}
               </h4>
               <p className="text-sm text-[#4B403D] mb-2">
-                Size: M | Condition: Like New
+                Size: {item.size} | Condition: {item.condition}
               </p>
               <Button className="w-full bg-[#2C2522] text-white">
                 Swap or Redeem
