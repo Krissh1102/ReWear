@@ -1,3 +1,5 @@
+"use client";
+
 import { useAuth as useClerkAuth, useUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";

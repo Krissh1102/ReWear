@@ -5,8 +5,8 @@ import { useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
-import { db } from "@/lib/firebase";
-import { collection, getDocs, orderBy, query } from "firebase/firestore";
+// Removed: import { db } from "@/lib/firebase";
+// Removed: import { collection, getDocs, orderBy, query } from "firebase/firestore";
 
 const dummyPurchases = Array.from({ length: 6 }, (_, i) => ({
   id: i + 1,
@@ -23,17 +23,10 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchListings = async () => {
       if (!user) return;
-
       try {
         setLoading(true);
-        const itemsRef = collection(db, "users", user.id, "items");
-        const q = query(itemsRef, orderBy("createdAt", "desc"));
-        const snapshot = await getDocs(q);
-        const fetchedItems = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-
+        const res = await fetch(`/api/items?userId=${user.id}`);
+        const fetchedItems = await res.json();
         setItems(fetchedItems);
       } catch (error) {
         console.error("Error fetching items:", error);
@@ -41,7 +34,6 @@ export default function Dashboard() {
         setLoading(false);
       }
     };
-
     if (isLoaded) {
       fetchListings();
     }
@@ -91,24 +83,24 @@ export default function Dashboard() {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
-        <Link href="/create-item">
+        <Link href="/create-listing">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 hover:bg-blue-100 transition-colors cursor-pointer">
             <h3 className="font-semibold text-blue-900 mb-2">Add New Item</h3>
             <p className="text-sm text-blue-700">List a new item for swapping</p>
           </div>
         </Link>
-        <Link href="/browse">
+        <Link href="/items">
           <div className="bg-green-50 border border-green-200 rounded-lg p-6 hover:bg-green-100 transition-colors cursor-pointer">
             <h3 className="font-semibold text-green-900 mb-2">Browse Items</h3>
             <p className="text-sm text-green-700">Find items to swap</p>
           </div>
         </Link>
-        <Link href="/profile">
+        {/* <Link href="/profile">
           <div className="bg-purple-50 border border-purple-200 rounded-lg p-6 hover:bg-purple-100 transition-colors cursor-pointer">
             <h3 className="font-semibold text-purple-900 mb-2">My Profile</h3>
             <p className="text-sm text-purple-700">Update your information</p>
           </div>
-        </Link>
+        </Link> */}
       </div>
 
       {/* Listings Preview */}
@@ -128,7 +120,7 @@ export default function Dashboard() {
         ) : items.length === 0 ? (
           <div className="text-center py-12 bg-gray-50 rounded-lg">
             <p className="text-gray-500 mb-4">No items listed yet.</p>
-            <Link href="/create-item">
+            <Link href="/create-listing">
               <Button>Create Your First Item</Button>
             </Link>
           </div>

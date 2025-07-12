@@ -2,9 +2,9 @@
 
 import React, { useState } from 'react';
 import { Plus, X, Upload, Image as ImageIcon } from 'lucide-react';
-import { db, storage } from '@/lib/firebase';
-import { collection, addDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+// Removed: import { db, storage } from '@/lib/firebase';
+// Removed: import { collection, addDoc } from 'firebase/firestore';
+// Removed: import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useUser } from '@clerk/nextjs';
 import Image from 'next/image';
 
@@ -15,7 +15,7 @@ const CreateItemPage = () => {
     category: '',
     condition: '',
     description: '',
-    images: [],
+    images: [], // For now, images will be URLs or empty
     size: '',
     status: 'available',
   });
@@ -34,12 +34,9 @@ const CreateItemPage = () => {
 
   const handleImageSelection = (e) => {
     const files = Array.from(e.target.files);
-    
     if (files.length > 0) {
       const newImageFiles = [...imageFiles, ...files];
       setImageFiles(newImageFiles);
-      
-      // Create preview URLs
       const newPreviews = files.map(file => URL.createObjectURL(file));
       setImagePreviews(prev => [...prev, ...newPreviews]);
     }
@@ -48,28 +45,14 @@ const CreateItemPage = () => {
   const removeImage = (index) => {
     const newImageFiles = imageFiles.filter((_, i) => i !== index);
     const newPreviews = imagePreviews.filter((_, i) => i !== index);
-    
-    // Clean up the object URL to prevent memory leaks
     URL.revokeObjectURL(imagePreviews[index]);
-    
     setImageFiles(newImageFiles);
     setImagePreviews(newPreviews);
   };
 
+  // For now, skip image upload logic. Images can be added later with multer/cloudinary.
   const uploadImages = async () => {
-    if (imageFiles.length === 0) return [];
-
-    const uploadPromises = imageFiles.map(async (file, index) => {
-      const timestamp = Date.now();
-      const fileName = `${user.id}_${timestamp}_${index}`;
-      const storageRef = ref(storage, `items/${fileName}`);
-      
-      const snapshot = await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(snapshot.ref);
-      return downloadURL;
-    });
-
-    return Promise.all(uploadPromises);
+    return [];
   };
 
   const handleSubmit = async () => {
@@ -78,33 +61,28 @@ const CreateItemPage = () => {
         alert("User not loaded");
         return;
       }
-
       if (!formData.category || !formData.condition || !formData.description || !formData.size) {
         alert("Please fill in all required fields");
         return;
       }
-
       setUploading(true);
-
-      // Upload images first
-      const imageUrls = await uploadImages();
-
-      const userDocId = user.id;
-      const userItemsRef = collection(db, 'users', userDocId, 'items');
-
+      // const imageUrls = await uploadImages();
+      // For now, skip image upload
       const itemData = {
         ...formData,
-        images: imageUrls,
+        images: [], // imageUrls,
         createdAt: new Date(),
-        userId: userDocId,
+        userId: user.id,
         userName: user.fullName,
         userEmail: user.primaryEmailAddress?.emailAddress,
       };
-
-      await addDoc(userItemsRef, itemData);
+      const res = await fetch('/api/items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(itemData),
+      });
+      if (!res.ok) throw new Error('Failed to add item');
       alert('Item added successfully!');
-
-      // Reset form
       setFormData({
         category: '',
         condition: '',
@@ -115,7 +93,6 @@ const CreateItemPage = () => {
       });
       setImageFiles([]);
       setImagePreviews([]);
-
     } catch (error) {
       console.error('Error adding item:', error);
       
@@ -133,7 +110,7 @@ const CreateItemPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
+    <div className="min-h-screen bg-gray-50 py-8 px-4 mt-15">
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-lg shadow-lg p-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-8">Create New Item</h1>

@@ -3,7 +3,6 @@ import "./globals.css";
 import Header from "@/components/Header";
 import { ClerkProvider } from "@clerk/nextjs";
 import { neobrutalism } from "@clerk/themes";
-import UserSyncWrapper from "@/components/UserSyncWrapper"; // Adjust path as needed
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,9 +26,6 @@ export default function RootLayout({ children }) {
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
-          {/* User sync component */}
-          <UserSyncWrapper />
-          
           {/* Header */}
           <Header />
           <main className="min-h-screen">{children}</main>
