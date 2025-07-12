@@ -1,12 +1,33 @@
-// next.config.mjs
-
-export default {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   images: {
-    domains: [
-      "cdn-icons-png.flaticon.com",
-      "images.unsplash.com",
-      "media.istockphoto.com",
-      "img.freepik.com",
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "cdn-icons-png.flaticon.com",
+      },
+      {
+        protocol: "https",
+        hostname: "media.istockphoto.com",
+      },
+      {
+        protocol: "https",
+        hostname: "img.freepik.com",
+      },
+      {
+        protocol: "https",
+        hostname: "img.clerk.com",
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "source.unsplash.com",
+      },
     ],
   },
 };
+
+export default nextConfig;
