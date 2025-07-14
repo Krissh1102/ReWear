@@ -101,4 +101,7 @@ Visit: [http://localhost:3000](http://localhost:3000)
 
 ---
 
-Feel free to ⭐ the repo if you like the project, and follow for future updates!
+## Video Link
+
+[https://drive.google.com/file/d/1jJK0QDHmWrfLLOn4EZ8bXR-1q_pSc4aM/view?usp=drivesdk](https://drive.google.com/file/d/1jJK0QDHmWrfLLOn4EZ8bXR-1q_pSc4aM/view?usp=drivesdk)
+
